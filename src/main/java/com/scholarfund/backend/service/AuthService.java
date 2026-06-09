@@ -38,8 +38,6 @@ public class AuthService {
 
     @Transactional
     public void registerStudent(RegisterStudentDto dto) {
-
-
         Optional<User> existingUserOpt = userRepository.findByEmail(dto.email());
 
         if (existingUserOpt.isPresent()) {
@@ -87,19 +85,29 @@ public class AuthService {
         // Generate 6-digit OTP
         String otpCode = String.format("%06d", new Random().nextInt(999999));
 
-        // Invalidate old OTP if exists
-        otpRepository.deleteByEmail(user.getEmail());
+        // Fix the race condition: Check for an existing OTP row first
+        Optional<OtpVerification> existingOtpOpt = otpRepository.findByEmail(user.getEmail());
+        OtpVerification otpVerification;
 
-        OtpVerification otpVerification = OtpVerification.builder()
-                .email(user.getEmail())
-                .otpCode(otpCode)
-                .expiresAt(LocalDateTime.now().plusMinutes(5))
-                .attempts(0)
-                .build();
+        if (existingOtpOpt.isPresent()) {
+            // If they already have an old OTP row, just update the code and reset the timer
+            otpVerification = existingOtpOpt.get();
+            otpVerification.setOtpCode(otpCode);
+            otpVerification.setExpiresAt(LocalDateTime.now().plusMinutes(5));
+            otpVerification.setAttempts(0); // Reset failed attempts
+        } else {
+            // If this is their very first time requesting an OTP, build a new row
+            otpVerification = OtpVerification.builder()
+                    .email(user.getEmail())
+                    .otpCode(otpCode)
+                    .expiresAt(LocalDateTime.now().plusMinutes(5))
+                    .attempts(0)
+                    .build();
+        }
 
+        // Save will automatically execute an UPDATE or an INSERT cleanly
         otpRepository.save(otpVerification);
 
-        // Call the new EmailService
         emailService.sendOtpEmail(user.getEmail(), otpCode);
 
         log.info("OTP generation complete for {}", user.getEmail());
@@ -153,16 +161,25 @@ public class AuthService {
         String accessToken = jwtUtil.generateAccessToken(user);
         String refreshTokenString = UUID.randomUUID().toString() + "-" + jwtUtil.generateRefreshToken(user);
 
-        // Remove old refresh token to prevent token hoarding
-        refreshTokenRepository.deleteByUser(user);
+        // Check if the user already has a token row in the database
+        Optional<RefreshToken> existingTokenOpt = refreshTokenRepository.findByUser(user);
+        RefreshToken refreshToken;
 
-        RefreshToken newRefreshToken = RefreshToken.builder()
-                .user(user)
-                .token(refreshTokenString)
-                .expiryDate(LocalDateTime.now().plusDays(30)) // Matches application.properties
-                .build();
+        if (existingTokenOpt.isPresent()) {
+            // If it exists, just update the token string and expiry date (No INSERT required)
+            refreshToken = existingTokenOpt.get();
+            refreshToken.setToken(refreshTokenString);
+            refreshToken.setExpiryDate(LocalDateTime.now().plusDays(30));
+        } else {
+            // If it is their first time logging in, build a brand-new row
+            refreshToken = RefreshToken.builder()
+                    .user(user)
+                    .token(refreshTokenString)
+                    .expiryDate(LocalDateTime.now().plusDays(30))
+                    .build();
+        }
 
-        refreshTokenRepository.save(newRefreshToken);
+        refreshTokenRepository.save(refreshToken);
 
         return new AuthResponse(
                 accessToken,
