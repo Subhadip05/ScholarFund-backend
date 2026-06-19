@@ -24,9 +24,11 @@ public enum ErrorCode {
     ERROR_CREATING_DIRECTORY,
     ERROR_COPYING_FILE,
     ERROR_READING_FILE,
+    ERROR_UPLOADING_FILE,
     ERROR_GENERATING_REPORT,
+    EMPTY_FILE_REQUEST,
 
-    // ScholarFund Specific (You can add more later)
+    // ScholarFund Specific
     USER_NOT_FOUND,
     INVALID_LOAN_STATUS
 }
