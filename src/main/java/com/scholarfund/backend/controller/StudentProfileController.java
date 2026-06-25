@@ -38,4 +38,21 @@ public class StudentProfileController {
                 new ApiResponse<>(200, "SUCCESS", "Student Profile updated successfully", updatedProfile)
         );
     }
+
+    @PreAuthorize("hasRole('STUDENT')")
+    @GetMapping
+    public ResponseEntity<ApiResponse<StudentProfileResponse>> getProfile() {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        assert authentication != null;
+        String email = authentication.getName();
+
+        log.info("Fetching profile data for student: {}", email);
+
+        StudentProfileResponse profileData = profileService.getStudentProfile(email);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(200, "SUCCESS", "Profile fetched successfully", profileData)
+        );
+    }
 }

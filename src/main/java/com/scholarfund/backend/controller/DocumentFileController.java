@@ -37,7 +37,7 @@ public class DocumentFileController {
         );
     }
 
-    // This endpoint fetches the secure AWS link so the frontend can display the image/PDF : view expire after 15 mints
+    // This endpoint fetches the secure AWS link so the frontend can display the image/PDF
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/view/{documentId}")
     public ResponseEntity<ApiResponse<Map<String, String>>> viewDocument(@PathVariable Long documentId) {

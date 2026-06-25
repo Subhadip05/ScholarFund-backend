@@ -22,24 +22,38 @@ public class StudentProfileService {
 
     private final StudentProfileRepository profileRepository;
     private final UserRepository userRepository;
-    private final DocumentFileRepository documentFileRepository; // Replaced S3Service with this
+    private final DocumentFileRepository documentFileRepository;
+    private final S3Service s3Service;
+
+    @Transactional(readOnly = true)
+    public StudentProfileResponse getStudentProfile(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ScholarFundException("User not found", ErrorCode.USER_NOT_FOUND, null));
+
+        StudentProfile studentProfile = profileRepository.findByUser(user)
+                .orElseThrow(() -> new ScholarFundException("Profile not found. Please create one.", ErrorCode.NOT_FOUND, null));
+
+        return mapToResponse(studentProfile, user);
+    }
 
     @Transactional
     public StudentProfileResponse saveOrUpdateProfile(String email, StudentProfileDto dto) {
 
-        // 1. Fetch the logged-in user
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ScholarFundException("User not found", ErrorCode.USER_NOT_FOUND, null));
 
-        // 2. Fetch existing profile, or create a new one
         StudentProfile profile = profileRepository.findByUser(user).orElse(new StudentProfile());
 
         profile.setUser(user);
         profile.setDateOfBirth(dto.dateOfBirth());
         profile.setGender(dto.gender());
         profile.setAddress(dto.address());
+        profile.setAnnualIncome(dto.annualIncome());
+        profile.setHsMarksPercentage(dto.hsMarksPercentage());
+        profile.setIsWestBengalResident(dto.isWestBengalResident());
+        profile.setBankAccountNumber(dto.bankAccountNumber());
+        profile.setIfscCode(dto.ifscCode());
 
-        // 3. Validate Aadhaar uniqueness
         if (dto.aadhaarNumber() != null && !dto.aadhaarNumber().equals(profile.getAadhaarNumber())) {
             if (profileRepository.existsByAadhaarNumber(dto.aadhaarNumber())) {
                 throw new ScholarFundException("Aadhaar already registered to another account", ErrorCode.ALREADY_EXIST, null);
@@ -47,33 +61,76 @@ public class StudentProfileService {
             profile.setAadhaarNumber(dto.aadhaarNumber());
         }
 
-        // 4. Link Aadhaar Document from the DocumentFile table
         if (dto.aadhaarFileId() != null) {
             DocumentFile aadhaarDoc = documentFileRepository.findById(dto.aadhaarFileId())
-                    .orElseThrow(() -> new ScholarFundException("Aadhaar document reference not found. Please upload again.", ErrorCode.NOT_FOUND, null));
+                    .orElseThrow(() -> new ScholarFundException("Aadhaar reference not found.", ErrorCode.NOT_FOUND, null));
             profile.setAadhaarDocumentKey(aadhaarDoc.getS3Key());
         }
 
-        // 5. Link Income Certificate from the DocumentFile table
         if (dto.incomeFileId() != null) {
             DocumentFile incomeDoc = documentFileRepository.findById(dto.incomeFileId())
-                    .orElseThrow(() -> new ScholarFundException("Income certificate reference not found. Please upload again.", ErrorCode.NOT_FOUND, null));
+                    .orElseThrow(() -> new ScholarFundException("Income certificate reference not found.", ErrorCode.NOT_FOUND, null));
             profile.setIncomeCertificateKey(incomeDoc.getS3Key());
         }
 
-        StudentProfile savedProfile = profileRepository.save(profile);
+        if (dto.hsMarksheetFileId() != null) {
+            DocumentFile doc = documentFileRepository.findById(dto.hsMarksheetFileId())
+                    .orElseThrow(() -> new ScholarFundException("10+2 Marksheet reference not found.", ErrorCode.NOT_FOUND, null));
+            profile.setHsMarksheetKey(doc.getS3Key());
+        }
 
+        if (dto.bankPassbookFileId() != null) {
+            DocumentFile doc = documentFileRepository.findById(dto.bankPassbookFileId())
+                    .orElseThrow(() -> new ScholarFundException("Bank Passbook reference not found.", ErrorCode.NOT_FOUND, null));
+            profile.setBankPassbookKey(doc.getS3Key());
+        }
+
+        StudentProfile savedProfile = profileRepository.save(profile);
         log.info("Student profile cleanly saved in database for user: {}", email);
 
-        // 7. Return the cleanly mapped Response DTO
+        return mapToResponse(savedProfile, user);
+    }
+
+    // Helper method to dynamically generate the 15-minute secure AWS URLs
+    private StudentProfileResponse mapToResponse(StudentProfile profile, User user) {
+
+        String aadhaarUrl = null;
+        if (profile.getAadhaarDocumentKey() != null) {
+            aadhaarUrl = s3Service.generatePresignedUrl(profile.getAadhaarDocumentKey());
+        }
+
+        String incomeUrl = null;
+        if (profile.getIncomeCertificateKey() != null) {
+            incomeUrl = s3Service.generatePresignedUrl(profile.getIncomeCertificateKey());
+        }
+
+        String hsMarksheetUrl = null;
+        if (profile.getHsMarksheetKey() != null) {
+            hsMarksheetUrl = s3Service.generatePresignedUrl(profile.getHsMarksheetKey());
+        }
+
+        String bankPassbookUrl = null;
+        if (profile.getBankPassbookKey() != null) {
+            bankPassbookUrl = s3Service.generatePresignedUrl(profile.getBankPassbookKey());
+        }
+
         return new StudentProfileResponse(
-                savedProfile.getId(),
+                profile.getId(),
                 user.getFullName(),
                 user.getEmail(),
-                savedProfile.getDateOfBirth(),
-                savedProfile.getGender(),
-                savedProfile.getAddress(),
-                savedProfile.getAadhaarNumber()
+                profile.getDateOfBirth(),
+                profile.getGender(),
+                profile.getAddress(),
+                profile.getAadhaarNumber(),
+                profile.getHsMarksPercentage(),
+                profile.getAnnualIncome(),
+                profile.getIsWestBengalResident(),
+                profile.getBankAccountNumber(),
+                profile.getIfscCode(),
+                aadhaarUrl,
+                incomeUrl,
+                hsMarksheetUrl,
+                bankPassbookUrl
         );
     }
 }

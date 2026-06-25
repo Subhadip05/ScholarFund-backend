@@ -34,8 +34,23 @@ public class StudentProfile extends Auditable {
     @Column(name = "aadhaar_number", unique = true, length = 12)
     private String aadhaarNumber;
 
-    // AWS S3 FILE KEYS : aadhaarDocumentKey, incomeCertificateKey
-    // Store the path to the file, not the file itself
+    @Column(name = "hs_marks_percentage")
+    private Double hsMarksPercentage;
+
+    @Column(name = "annual_income")
+    private Double annualIncome;
+
+    @Column(name = "is_west_bengal_resident")
+    private Boolean isWestBengalResident;
+
+    @Column(name = "bank_account_number")
+    private String bankAccountNumber;
+
+    @Column(name = "ifsc_code")
+    private String ifscCode;
+
+    // AWS S3 FILE KEYS : aadhaarDocumentKey, incomeCertificateKey, hsMarksheetKey,bankPassbookKey
+    // Store the path of the file into DocumentFile table, not the file itself
 
     @Column(name = "aadhaar_document_key")
     private String aadhaarDocumentKey;
@@ -43,4 +58,9 @@ public class StudentProfile extends Auditable {
     @Column(name = "income_certificate_key")
     private String incomeCertificateKey;
 
+    @Column(name = "hs_marksheet_key")
+    private String hsMarksheetKey;
+
+    @Column(name = "bank_passbook_key")
+    private String bankPassbookKey;
 }

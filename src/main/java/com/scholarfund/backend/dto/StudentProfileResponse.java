@@ -9,5 +9,17 @@ public record StudentProfileResponse(
         LocalDate dateOfBirth,
         String gender,
         String address,
-        String aadhaarNumber
+        String aadhaarNumber,
+        Double hsMarksPercentage,
+        Double annualIncome,
+        Boolean isWestBengalResident,
+        String bankAccountNumber,
+        String ifscCode,
+
+        // AWS Presigned URLs for frontend display
+        String aadhaarDocumentUrl,
+        String incomeCertificateUrl,
+        String hsMarksheetUrl,
+        String bankPassbookUrl
+
 ) {}
