@@ -30,5 +30,6 @@ public enum ErrorCode {
 
     // ScholarFund Specific
     USER_NOT_FOUND,
-    INVALID_LOAN_STATUS
+    INVALID_LOAN_STATUS,
+    BAD_REQUEST
 }
