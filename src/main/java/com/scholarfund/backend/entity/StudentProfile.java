@@ -34,8 +34,11 @@ public class StudentProfile extends Auditable {
     @Column(name = "aadhaar_number", unique = true, length = 12)
     private String aadhaarNumber;
 
-    @Column(name = "hs_marks_percentage")
-    private Double hsMarksPercentage;
+    @Column(name = "last_qualification_marks")
+    private Double lastQualificationMarks;
+
+    @Column(name = "last_qualification_course")
+    private String lastQualificationCourse;
 
     @Column(name = "annual_income")
     private Double annualIncome;

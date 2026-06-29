@@ -16,12 +16,10 @@ public class ScholarshipApplication extends Auditable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Links to the Student applying
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_profile_id", nullable = false)
     private StudentProfile studentProfile;
 
-    // Links to the Institute reviewing it
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "institute_profile_id", nullable = false)
     private InstituteProfile instituteProfile;

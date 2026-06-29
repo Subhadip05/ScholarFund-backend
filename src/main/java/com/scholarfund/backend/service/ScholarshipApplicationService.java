@@ -33,6 +33,19 @@ public class ScholarshipApplicationService {
         StudentProfile studentProfile = studentProfileRepository.findByUser(user)
                 .orElseThrow(() -> new ScholarFundException("You must complete your profile before applying.", ErrorCode.BAD_REQUEST, null));
 
+        // Scholarship eligibility for student ----
+        if (studentProfile.getIsWestBengalResident() == null || !studentProfile.getIsWestBengalResident()) {
+            throw new ScholarFundException("Eligibility Failed: You must be a resident of West Bengal.", ErrorCode.BAD_REQUEST, null);
+        }
+
+        if (studentProfile.getLastQualificationMarks() == null || studentProfile.getLastQualificationMarks() < 70.0) {
+            throw new ScholarFundException("Eligibility Failed: A minimum of 70% in your last qualification is required.", ErrorCode.BAD_REQUEST, null);
+        }
+
+        if (studentProfile.getAnnualIncome() == null || studentProfile.getAnnualIncome() >= 200000.0) {
+            throw new ScholarFundException("Eligibility Failed: Family annual income must be less than 2,00,000.", ErrorCode.BAD_REQUEST, null);
+        }
+
         if (applicationRepository.existsByStudentProfileAndAcademicYear(studentProfile, request.academicYear())) {
             throw new ScholarFundException("You have already applied for a scholarship for the " + request.academicYear() + " academic year.", ErrorCode.ALREADY_EXIST, null);
         }

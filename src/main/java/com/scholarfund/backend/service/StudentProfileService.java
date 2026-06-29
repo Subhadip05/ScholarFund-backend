@@ -49,7 +49,8 @@ public class StudentProfileService {
         profile.setGender(dto.gender());
         profile.setAddress(dto.address());
         profile.setAnnualIncome(dto.annualIncome());
-        profile.setHsMarksPercentage(dto.hsMarksPercentage());
+        profile.setLastQualificationMarks(dto.lastQualificationMarks());
+        profile.setLastQualificationCourse(dto.lastQualificationCourse());
         profile.setIsWestBengalResident(dto.isWestBengalResident());
         profile.setBankAccountNumber(dto.bankAccountNumber());
         profile.setIfscCode(dto.ifscCode());
@@ -122,7 +123,8 @@ public class StudentProfileService {
                 profile.getGender(),
                 profile.getAddress(),
                 profile.getAadhaarNumber(),
-                profile.getHsMarksPercentage(),
+                profile.getLastQualificationMarks(),
+                profile.getLastQualificationCourse(),
                 profile.getAnnualIncome(),
                 profile.getIsWestBengalResident(),
                 profile.getBankAccountNumber(),
