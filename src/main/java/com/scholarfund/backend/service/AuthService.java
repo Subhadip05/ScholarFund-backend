@@ -78,6 +78,47 @@ public class AuthService {
     }
 
     @Transactional
+    public void registerCollege(RegisterCollegeDto dto) {
+        Optional<User> existingUserOpt = userRepository.findByEmail(dto.email());
+
+        if (existingUserOpt.isPresent()) {
+            User existingUser = existingUserOpt.get();
+
+            // If they are already fully verified, throw the error
+            if (existingUser.getIsVerified()) {
+                throw new ScholarFundException("Institute already registered and verified. Please login.", ErrorCode.ALREADY_EXIST, null);
+            } else {
+                // If they exist but never finished OTP verification, just resend the OTP and stop here.
+                log.info("Unverified Institute user {} attempting to register again. Resending OTP.", dto.email());
+                requestOtp(new RequestOtpDto(dto.email()));
+                return;
+            }
+        }
+
+        // 2. Check phone number only for completely new registrations
+        if (userRepository.existsByPhoneNumber(dto.phoneNumber())) {
+            throw new ScholarFundException("Phone number already in use", ErrorCode.ALREADY_EXIST, null);
+        }
+
+        // 3. Proceed with new user creation
+        Role insituteRole = roleRepository.findByRoleName("COLLAGE")
+                .orElseThrow(() -> new ScholarFundException("Role not found", ErrorCode.NOT_FOUND, null));
+
+        User user = new User();
+        user.setEmail(dto.email());
+        user.setFullName(dto.contactPersonName());
+        user.setPhoneNumber(dto.phoneNumber());
+        user.setRole(insituteRole);
+        user.setIsVerified(false);
+        user.setIsActive(true);
+
+        userRepository.save(user);
+
+        log.info("Created new unverified collage record for {}", dto.email());
+        requestOtp(new RequestOtpDto(dto.email()));
+    }
+
+    @Transactional
     public void requestOtp(RequestOtpDto dto) {
         User user = userRepository.findByEmail(dto.email())
                 .orElseThrow(() -> new ScholarFundException("User not found", ErrorCode.USER_NOT_FOUND, null));

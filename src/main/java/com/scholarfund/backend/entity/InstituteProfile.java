@@ -33,5 +33,9 @@ public class InstituteProfile extends Auditable {
     @Column(columnDefinition = "TEXT")
     private String address;
 
+    @Column(name = "verified_by_govt", nullable = false)
+    @Builder.Default
+    private Boolean verifiedByGovt = false;
+
     private String affiliationCertificateKey;
 }

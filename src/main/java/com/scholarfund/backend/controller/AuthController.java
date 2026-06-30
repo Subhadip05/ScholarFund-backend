@@ -26,6 +26,14 @@ public class AuthController {
         );
     }
 
+    @PostMapping("/register-college")
+    public ResponseEntity<ApiResponse<String>> registerCollege(@RequestBody RegisterCollegeDto request) {
+        authService.registerCollege(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                new ApiResponse<>(201, "CREATED", "College registered successfully. OTP sent to email.")
+        );
+    }
+
     @PostMapping("/request-otp")
     public ResponseEntity<ApiResponse<String>> requestOtp(@RequestBody RequestOtpDto request) {
         authService.requestOtp(request);
