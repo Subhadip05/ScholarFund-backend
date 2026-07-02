@@ -59,4 +59,13 @@ public class AuthController {
                 new ApiResponse<>(200, "SUCCESS", "Token refreshed successfully", newAuthData)
         );
     }
+
+    @PostMapping("/admin-login")
+    public ResponseEntity<ApiResponse<AuthResponse>> adminLogin(@RequestBody AdminLoginDto request) {
+        AuthResponse authData = authService.adminLogin(request);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(200, "SUCCESS", "Admin login successful", authData)
+        );
+    }
 }

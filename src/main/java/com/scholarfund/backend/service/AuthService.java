@@ -16,6 +16,7 @@ import com.scholarfund.backend.security.JwtUtil;
 import com.scholarfund.backend.service.email.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +36,7 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtUtil jwtUtil;
     private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public void registerStudent(RegisterStudentDto dto) {
@@ -229,5 +231,25 @@ public class AuthService {
                 user.getFullName(),
                 user.getEmail()
         );
+    }
+
+    public AuthResponse adminLogin(AdminLoginDto request) {
+        log.info("Admin login attempt for: {}", request.email());
+
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new ScholarFundException("Invalid credentials", ErrorCode.UNAUTHORIZED, null));
+
+        if (user.getRole() == null || !"GOVT".equals(user.getRole().getRoleName())) {
+            log.warn("Non-admin user attempted admin login: {}", request.email());
+            throw new ScholarFundException("Access denied. Admin only.", ErrorCode.FORBIDDEN, null);
+        }
+
+        if (user.getPasswordHash() == null || !passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+            throw new ScholarFundException("Invalid credentials", ErrorCode.UNAUTHORIZED, null);
+        }
+
+        log.info("Admin successfully logged in: {}", request.email());
+
+        return generateTokens(user);
     }
 }

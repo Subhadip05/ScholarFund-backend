@@ -53,6 +53,10 @@ public class ScholarshipApplicationService {
         InstituteProfile instituteProfile = instituteProfileRepository.findById(request.instituteId())
                 .orElseThrow(() -> new ScholarFundException("Selected Institute not found.", ErrorCode.NOT_FOUND, null));
 
+        if (instituteProfile.getVerifiedByGovt() == null || !instituteProfile.getVerifiedByGovt()) {
+            throw new ScholarFundException("Cannot apply: This institute has not yet been verified by the Government.", ErrorCode.BAD_REQUEST, null);
+        }
+
         ScholarshipApplication application = ScholarshipApplication.builder()
                 .studentProfile(studentProfile)
                 .instituteProfile(instituteProfile)

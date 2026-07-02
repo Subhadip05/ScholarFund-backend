@@ -26,7 +26,7 @@ public class DatabaseSeeder implements CommandLineRunner {
             student.setRoleName("STUDENT");
 
             Role college = new Role();
-            college.setRoleName("COLLEGE");
+            college.setRoleName("COLLAGE");
 
             Role bank = new Role();
             bank.setRoleName("BANK");

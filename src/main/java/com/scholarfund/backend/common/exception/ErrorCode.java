@@ -1,8 +1,6 @@
 package com.scholarfund.backend.common.exception;
 
 public enum ErrorCode {
-    // General Errors
-    GENERAL,
     NOT_FOUND,
     INTERNAL_SERVER_ERROR,
     ALREADY_EXIST,
@@ -15,6 +13,7 @@ public enum ErrorCode {
     EXPIRED_TOKEN,
     EXPIRED_REFRESH_TOKEN,
     INVALID_OTP,
+    FORBIDDEN,
 
     // File Handling
     FILE_NOT_FOUND,
@@ -30,6 +29,5 @@ public enum ErrorCode {
 
     // ScholarFund Specific
     USER_NOT_FOUND,
-    INVALID_LOAN_STATUS,
     BAD_REQUEST
 }

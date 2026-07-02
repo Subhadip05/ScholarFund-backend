@@ -9,5 +9,7 @@ public class AuthRequests {
 
     public record RegisterCollegeDto(String email, String contactPersonName, String phoneNumber) {}
 
+    public record AdminLoginDto(String email, String password) {}
+
     public record RefreshTokenDto(String refreshToken) {}
 }
