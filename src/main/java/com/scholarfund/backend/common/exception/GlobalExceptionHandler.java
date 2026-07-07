@@ -15,10 +15,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Object>> handleScholarFundException(ScholarFundException ex) {
         log.warn("Business Exception: {}", ex.getMessage());
 
-        // Map your custom ErrorCode enum to an actual HTTP Status
+        // Map custom ErrorCode enum to an actual HTTP Status
         HttpStatus status = mapErrorCodeToHttpStatus(ex.getErrorCode());
 
-        // Format it perfectly into your existing ApiResponse structure
         ApiResponse<Object> response = new ApiResponse<>(
                 status.value(),
                 ex.getErrorCode().name(),
@@ -29,7 +28,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, status);
     }
 
-    // Catch all other unexpected errors, so they don't crash the frontend or return raw HTML error pages
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleGeneralException(Exception ex) {
         log.error("Unexpected Error: ", ex);
