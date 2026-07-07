@@ -15,6 +15,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -69,6 +72,31 @@ public class InstituteProfileService {
         log.info("Institute profile cleanly saved in database for user: {}", email);
 
         return mapToResponse(savedProfile, user);
+    }
+
+    // --- ADMIN METHODS ---
+    @Transactional(readOnly = true)
+    public List<InstituteProfileResponse> getUnverifiedInstitutes() {
+        // Fetch all where verifiedByGovt is false, and map them to Response DTOs
+        return instituteProfileRepository.findByVerifiedByGovtFalse().stream()
+                .map(profile -> mapToResponse(profile, profile.getUser()))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public String verifyInstitute(Long instituteId) {
+        InstituteProfile profile = instituteProfileRepository.findById(instituteId)
+                .orElseThrow(() -> new ScholarFundException("Institute not found", ErrorCode.NOT_FOUND, null));
+
+        if (Boolean.TRUE.equals(profile.getVerifiedByGovt())) {
+            throw new ScholarFundException("Institute is already verified", ErrorCode.BAD_REQUEST, null);
+        }
+
+        profile.setVerifiedByGovt(true);
+        instituteProfileRepository.save(profile);
+
+        log.info("Institute {} verified successfully by Admin", instituteId);
+        return "Institute verified successfully";
     }
 
     private InstituteProfileResponse mapToResponse(InstituteProfile profile, User user) {
