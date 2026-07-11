@@ -28,7 +28,7 @@ public class AdminController {
 
         String message = unverifiedList.isEmpty()
                 ? "There is no unverified college"
-                : "Unverified institutes fetched successfu lly";
+                : "Unverified institutes fetched successfully";
 
         return ResponseEntity.ok(
                 new ApiResponse<>(200, "SUCCESS", message, unverifiedList)

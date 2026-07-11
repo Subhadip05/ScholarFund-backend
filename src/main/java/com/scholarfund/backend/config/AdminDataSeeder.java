@@ -42,8 +42,6 @@ public class AdminDataSeeder implements CommandLineRunner {
 
             userRepository.save(admin);
             log.info("Default Admin account created successfully! You can now log in.");
-        } else {
-            log.info("Default Admin account already exists in the database.");
         }
     }
 }

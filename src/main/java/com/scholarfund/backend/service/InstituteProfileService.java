@@ -77,7 +77,6 @@ public class InstituteProfileService {
     // --- ADMIN METHODS ---
     @Transactional(readOnly = true)
     public List<InstituteProfileResponse> getUnverifiedInstitutes() {
-        // Fetch all where verifiedByGovt is false, and map them to Response DTOs
         return instituteProfileRepository.findByVerifiedByGovtFalse().stream()
                 .map(profile -> mapToResponse(profile, profile.getUser()))
                 .collect(Collectors.toList());

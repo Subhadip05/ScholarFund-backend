@@ -23,7 +23,6 @@ public class User implements Serializable {
     @Column(unique = true, nullable = false, length = 100)
     private String email;
 
-    // We will leave password null or omit it entirely since we are using OTP
     @Column(name = "password_hash")
     private String passwordHash;
 

@@ -18,6 +18,7 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+
         // Check if the roles table is empty
         if (roleRepository.count() == 0) {
             log.info("Seeding database with initial roles...");
@@ -34,7 +35,6 @@ public class DatabaseSeeder implements CommandLineRunner {
             Role govt = new Role();
             govt.setRoleName("GOVT");
 
-            // Save all 4 roles to MySQL
             roleRepository.saveAll(List.of(student, college, bank, govt));
 
             log.info("Roles seeded successfully.");
