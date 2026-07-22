@@ -1,9 +1,9 @@
 package com.scholarfund.backend.dto;
 
 public class AuthRequests {
-    public record RequestOtpDto(String email) {}
+    public record RequestOtpDto(String email, String role) {}
 
-    public record VerifyOtpDto(String email, String otpCode) {}
+    public record VerifyOtpDto(String email, String otpCode, String role) {}
 
     public record RegisterStudentDto(String email, String fullName, String phoneNumber) {}
 

@@ -51,7 +51,7 @@ public class AuthService {
             } else {
                 // If they exist but never finished OTP verification, just resend the OTP and stop here.
                 log.info("Unverified user {} attempting to register again. Resending OTP.", dto.email());
-                requestOtp(new RequestOtpDto(dto.email()));
+                requestOtp(new RequestOtpDto(dto.email(),"STUDENT"));
                 return;
             }
         }
@@ -76,7 +76,7 @@ public class AuthService {
         userRepository.save(user);
 
         log.info("Created new unverified student record for {}", dto.email());
-        requestOtp(new RequestOtpDto(dto.email()));
+        requestOtp(new RequestOtpDto(dto.email(),"STUDENT"));
     }
 
     @Transactional
@@ -92,7 +92,7 @@ public class AuthService {
             } else {
                 // If they exist but never finished OTP verification, just resend the OTP and stop here.
                 log.info("Unverified Institute user {} attempting to register again. Resending OTP.", dto.email());
-                requestOtp(new RequestOtpDto(dto.email()));
+                requestOtp(new RequestOtpDto(dto.email(),"COLLAGE"));
                 return;
             }
         }
@@ -117,13 +117,66 @@ public class AuthService {
         userRepository.save(user);
 
         log.info("Created new unverified collage record for {}", dto.email());
-        requestOtp(new RequestOtpDto(dto.email()));
+        requestOtp(new RequestOtpDto(dto.email(),"COLLAGE"));
+    }
+
+    @Transactional
+    public AuthResponse verifyOtpAndLogin(VerifyOtpDto dto) {
+        OtpVerification otpRecord = otpRepository.findByEmail(dto.email())
+                .orElseThrow(() -> new ScholarFundException("No pending OTP found", ErrorCode.NOT_FOUND, null));
+
+
+        if (otpRecord.getExpiresAt().isBefore(LocalDateTime.now())) {
+            otpRepository.delete(otpRecord);
+            throw new ScholarFundException("OTP expired. Please request a new one.", ErrorCode.INVALID_OTP, null);
+        }
+
+        if (!otpRecord.getOtpCode().equals(dto.otpCode())) {
+            otpRecord.setAttempts(otpRecord.getAttempts() + 1);
+            otpRepository.save(otpRecord);
+            throw new ScholarFundException("Invalid OTP", ErrorCode.INVALID_OTP, null);
+        }
+
+        User user = userRepository.findByEmail(dto.email())
+                .orElseThrow(() -> new ScholarFundException("User not found", ErrorCode.USER_NOT_FOUND, null));
+
+        String requestedRole = dto.role().toUpperCase();
+        String actualRole = user.getRole().getRoleName().toUpperCase();
+
+        if (!actualRole.equals(requestedRole)) {
+            throw new ScholarFundException("Invalid role for this user.", ErrorCode.USER_NOT_FOUND, null);
+        }
+
+        // Mark user as verified upon first successful login
+        if (!user.getIsVerified()) {
+            user.setIsVerified(true);
+            userRepository.save(user);
+        }
+
+        // Clean up used OTP
+        otpRepository.delete(otpRecord);
+
+        return generateTokens(user);
     }
 
     @Transactional
     public void requestOtp(RequestOtpDto dto) {
         User user = userRepository.findByEmail(dto.email())
                 .orElseThrow(() -> new ScholarFundException("User not found", ErrorCode.USER_NOT_FOUND, null));
+
+        String requestedRole = dto.role().toUpperCase();
+        String actualRole = user.getRole().getRoleName().toUpperCase();
+
+        if (!actualRole.equals(requestedRole)) {
+            log.warn("Login attempt blocked: Email {} is a {} but attempted to login as {}",
+                    dto.email(), actualRole, requestedRole);
+
+            throw new ScholarFundException(
+                    "This email is not registered for the " + requestedRole + " portal access.",
+                    ErrorCode.USER_NOT_FOUND,
+                    null
+            );
+        }
 
         // Generate 6-digit OTP
         String otpCode = String.format("%06d", new Random().nextInt(999999));
@@ -154,37 +207,6 @@ public class AuthService {
         emailService.sendOtpEmail(user.getEmail(), otpCode);
 
         log.info("OTP generation complete for {}", user.getEmail());
-    }
-
-    @Transactional
-    public AuthResponse verifyOtpAndLogin(VerifyOtpDto dto) {
-        OtpVerification otpRecord = otpRepository.findByEmail(dto.email())
-                .orElseThrow(() -> new ScholarFundException("No pending OTP found", ErrorCode.NOT_FOUND, null));
-
-        if (otpRecord.getExpiresAt().isBefore(LocalDateTime.now())) {
-            otpRepository.delete(otpRecord);
-            throw new ScholarFundException("OTP expired. Please request a new one.", ErrorCode.INVALID_OTP, null);
-        }
-
-        if (!otpRecord.getOtpCode().equals(dto.otpCode())) {
-            otpRecord.setAttempts(otpRecord.getAttempts() + 1);
-            otpRepository.save(otpRecord);
-            throw new ScholarFundException("Invalid OTP", ErrorCode.INVALID_OTP, null);
-        }
-
-        User user = userRepository.findByEmail(dto.email())
-                .orElseThrow(() -> new ScholarFundException("User not found", ErrorCode.USER_NOT_FOUND, null));
-
-        // Mark user as verified upon first successful login
-        if (!user.getIsVerified()) {
-            user.setIsVerified(true);
-            userRepository.save(user);
-        }
-
-        // Clean up used OTP
-        otpRepository.delete(otpRecord);
-
-        return generateTokens(user);
     }
 
     @Transactional

@@ -34,3 +34,4 @@ build/
 
 ### Config files ###
 application.properties
+src/main/java/com/scholarfund/backend/config/AdminDataSeeder.java
