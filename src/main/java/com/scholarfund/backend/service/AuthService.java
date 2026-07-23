@@ -40,7 +40,7 @@ public class AuthService {
 
     @Transactional
     public void registerStudent(RegisterStudentDto dto) {
-        Optional<User> existingUserOpt = userRepository.findByEmail(dto.email());
+        Optional<User> existingUserOpt = userRepository.findByEmail(dto.email().trim());
 
         if (existingUserOpt.isPresent()) {
             User existingUser = existingUserOpt.get();
@@ -51,7 +51,7 @@ public class AuthService {
             } else {
                 // If they exist but never finished OTP verification, just resend the OTP and stop here.
                 log.info("Unverified user {} attempting to register again. Resending OTP.", dto.email());
-                requestOtp(new RequestOtpDto(dto.email(),"STUDENT"));
+                requestOtp(new RequestOtpDto(dto.email().trim(),"STUDENT"));
                 return;
             }
         }
@@ -66,8 +66,8 @@ public class AuthService {
                 .orElseThrow(() -> new ScholarFundException("Role not found", ErrorCode.NOT_FOUND, null));
 
         User user = new User();
-        user.setEmail(dto.email());
-        user.setFullName(dto.fullName());
+        user.setEmail(dto.email().trim());
+        user.setFullName(dto.fullName().trim());
         user.setPhoneNumber(dto.phoneNumber());
         user.setRole(studentRole);
         user.setIsVerified(false); // Stays false until first successful OTP verification
@@ -76,7 +76,7 @@ public class AuthService {
         userRepository.save(user);
 
         log.info("Created new unverified student record for {}", dto.email());
-        requestOtp(new RequestOtpDto(dto.email(),"STUDENT"));
+        requestOtp(new RequestOtpDto(dto.email().trim(),"STUDENT"));
     }
 
     @Transactional
@@ -92,7 +92,7 @@ public class AuthService {
             } else {
                 // If they exist but never finished OTP verification, just resend the OTP and stop here.
                 log.info("Unverified Institute user {} attempting to register again. Resending OTP.", dto.email());
-                requestOtp(new RequestOtpDto(dto.email(),"COLLAGE"));
+                requestOtp(new RequestOtpDto(dto.email(),"COLLEGE"));
                 return;
             }
         }
@@ -103,7 +103,7 @@ public class AuthService {
         }
 
         // 3. Proceed with new user creation
-        Role insituteRole = roleRepository.findByRoleName("COLLAGE")
+        Role insituteRole = roleRepository.findByRoleName("COLLEGE")
                 .orElseThrow(() -> new ScholarFundException("Role not found", ErrorCode.NOT_FOUND, null));
 
         User user = new User();
@@ -116,14 +116,14 @@ public class AuthService {
 
         userRepository.save(user);
 
-        log.info("Created new unverified collage record for {}", dto.email());
-        requestOtp(new RequestOtpDto(dto.email(),"COLLAGE"));
+        log.info("Created new unverified college record for {}", dto.email());
+        requestOtp(new RequestOtpDto(dto.email(),"COLLEGE"));
     }
 
     @Transactional
     public AuthResponse verifyOtpAndLogin(VerifyOtpDto dto) {
         OtpVerification otpRecord = otpRepository.findByEmail(dto.email())
-                .orElseThrow(() -> new ScholarFundException("No pending OTP found", ErrorCode.NOT_FOUND, null));
+                .orElseThrow(() -> new ScholarFundException("No email found for verification", ErrorCode.NOT_FOUND, null));
 
 
         if (otpRecord.getExpiresAt().isBefore(LocalDateTime.now())) {
@@ -144,7 +144,7 @@ public class AuthService {
         String actualRole = user.getRole().getRoleName().toUpperCase();
 
         if (!actualRole.equals(requestedRole)) {
-            throw new ScholarFundException("Invalid role for this user.", ErrorCode.USER_NOT_FOUND, null);
+            throw new ScholarFundException("Invalid role for this user.", ErrorCode.USER_EXIST_DIFF_ROLE, null);
         }
 
         // Mark user as verified upon first successful login
@@ -161,7 +161,7 @@ public class AuthService {
 
     @Transactional
     public void requestOtp(RequestOtpDto dto) {
-        User user = userRepository.findByEmail(dto.email())
+        User user = userRepository.findByEmail(dto.email().trim())
                 .orElseThrow(() -> new ScholarFundException("User not found", ErrorCode.USER_NOT_FOUND, null));
 
         String requestedRole = dto.role().toUpperCase();
@@ -172,8 +172,8 @@ public class AuthService {
                     dto.email(), actualRole, requestedRole);
 
             throw new ScholarFundException(
-                    "This email is not registered for the " + requestedRole + " portal access.",
-                    ErrorCode.USER_NOT_FOUND,
+                    "This email is already registered for the " + actualRole + " portal access.",
+                    ErrorCode.USER_EXIST_DIFF_ROLE,
                     null
             );
         }
@@ -182,7 +182,7 @@ public class AuthService {
         String otpCode = String.format("%06d", new Random().nextInt(999999));
 
         // Fix the race condition: Check for an existing OTP row first
-        Optional<OtpVerification> existingOtpOpt = otpRepository.findByEmail(user.getEmail());
+        Optional<OtpVerification> existingOtpOpt = otpRepository.findByEmail(user.getEmail().trim());
         OtpVerification otpVerification;
 
         if (existingOtpOpt.isPresent()) {
@@ -194,7 +194,7 @@ public class AuthService {
         } else {
             // If this is their very first time requesting an OTP, build a new row
             otpVerification = OtpVerification.builder()
-                    .email(user.getEmail())
+                    .email(user.getEmail().trim())
                     .otpCode(otpCode)
                     .expiresAt(LocalDateTime.now().plusMinutes(5))
                     .attempts(0)

@@ -29,5 +29,6 @@ public enum ErrorCode {
 
     // ScholarFund Specific
     USER_NOT_FOUND,
-    BAD_REQUEST
+    BAD_REQUEST,
+    USER_EXIST_DIFF_ROLE
 }

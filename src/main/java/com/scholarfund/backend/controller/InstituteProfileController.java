@@ -20,7 +20,7 @@ public class InstituteProfileController {
 
     private final InstituteProfileService instituteProfileService;
 
-    @PreAuthorize("hasRole('COLLAGE')")
+    @PreAuthorize("hasRole('COLLEGE')")
     @PostMapping
     public ResponseEntity<ApiResponse<InstituteProfileResponse>> updateInstituteProfile(@RequestBody InstituteProfileDto requestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -36,7 +36,7 @@ public class InstituteProfileController {
         );
     }
 
-    @PreAuthorize("hasRole('COLLAGE')")
+    @PreAuthorize("hasRole('COLLEGE')")
     @GetMapping
     public ResponseEntity<ApiResponse<InstituteProfileResponse>> getProfile() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
