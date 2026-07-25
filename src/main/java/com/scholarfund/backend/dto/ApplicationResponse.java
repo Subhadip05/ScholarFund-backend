@@ -1,6 +1,7 @@
 package com.scholarfund.backend.dto;
 
 import com.scholarfund.backend.entity.ApplicationStatus;
+import java.util.List;
 
 public record ApplicationResponse(
         Long applicationId,
@@ -8,9 +9,19 @@ public record ApplicationResponse(
         String instituteName,
         String courseName,
         String academicYear,
+        Double lastQualificationMarks,
+        String lastQualificationCourse,
+        String lastQualificationExamRollNo,
+        String passOutBoardName,
+        Double annualIncome,
+        String bankAccountNumber,
+        String ifscCode,
         ApplicationStatus status,
 
-        String studentRemarks,
-        String instituteRemarks,
-        String govtRemarks
+        // AWS Presigned URLs for frontend display
+        String incomeCertificateUrl,
+        String hsMarksheetUrl,
+        String bankPassbookUrl,
+
+        List<ApplicationHistoryDto> timeline
 ) {}

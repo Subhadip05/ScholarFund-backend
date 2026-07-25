@@ -45,15 +45,12 @@ public class StudentProfileService {
         StudentProfile profile = profileRepository.findByUser(user).orElse(new StudentProfile());
 
         profile.setUser(user);
+        profile.setFullName(dto.fullName());
+        profile.setPhoneNumber(dto.phoneNumber());
         profile.setDateOfBirth(dto.dateOfBirth());
         profile.setGender(dto.gender());
         profile.setAddress(dto.address());
-        profile.setAnnualIncome(dto.annualIncome());
-        profile.setLastQualificationMarks(dto.lastQualificationMarks());
-        profile.setLastQualificationCourse(dto.lastQualificationCourse());
         profile.setIsWestBengalResident(dto.isWestBengalResident());
-        profile.setBankAccountNumber(dto.bankAccountNumber());
-        profile.setIfscCode(dto.ifscCode());
 
         if (dto.aadhaarNumber() != null && !dto.aadhaarNumber().equals(profile.getAadhaarNumber())) {
             if (profileRepository.existsByAadhaarNumber(dto.aadhaarNumber())) {
@@ -64,26 +61,20 @@ public class StudentProfileService {
 
         if (dto.aadhaarFileId() != null) {
             DocumentFile aadhaarDoc = documentFileRepository.findById(dto.aadhaarFileId())
-                    .orElseThrow(() -> new ScholarFundException("Aadhaar reference not found.", ErrorCode.NOT_FOUND, null));
+                    .orElseThrow(() -> new ScholarFundException("Aadhaar reference not found.", ErrorCode.FILE_NOT_FOUND, null));
             profile.setAadhaarDocumentKey(aadhaarDoc.getS3Key());
         }
 
-        if (dto.incomeFileId() != null) {
-            DocumentFile incomeDoc = documentFileRepository.findById(dto.incomeFileId())
-                    .orElseThrow(() -> new ScholarFundException("Income certificate reference not found.", ErrorCode.NOT_FOUND, null));
-            profile.setIncomeCertificateKey(incomeDoc.getS3Key());
+        if (dto.selfImageFileId() != null) {
+            DocumentFile selfImageDoc = documentFileRepository.findById(dto.selfImageFileId())
+                    .orElseThrow(() -> new ScholarFundException("Self Image reference not found.", ErrorCode.FILE_NOT_FOUND, null));
+            profile.setSelfImageKey(selfImageDoc.getS3Key());
         }
 
-        if (dto.hsMarksheetFileId() != null) {
-            DocumentFile doc = documentFileRepository.findById(dto.hsMarksheetFileId())
-                    .orElseThrow(() -> new ScholarFundException("10+2 Marksheet reference not found.", ErrorCode.NOT_FOUND, null));
-            profile.setHsMarksheetKey(doc.getS3Key());
-        }
-
-        if (dto.bankPassbookFileId() != null) {
-            DocumentFile doc = documentFileRepository.findById(dto.bankPassbookFileId())
-                    .orElseThrow(() -> new ScholarFundException("Bank Passbook reference not found.", ErrorCode.NOT_FOUND, null));
-            profile.setBankPassbookKey(doc.getS3Key());
+        if (dto.selfSignatureFileId() != null) {
+            DocumentFile selfSignatureDoc = documentFileRepository.findById(dto.selfSignatureFileId())
+                    .orElseThrow(() -> new ScholarFundException("Self Signature reference not found.", ErrorCode.FILE_NOT_FOUND, null));
+            profile.setSelfSignatureKey(selfSignatureDoc.getS3Key());
         }
 
         StudentProfile savedProfile = profileRepository.save(profile);
@@ -100,39 +91,29 @@ public class StudentProfileService {
             aadhaarUrl = s3Service.generatePresignedUrl(profile.getAadhaarDocumentKey());
         }
 
-        String incomeUrl = null;
-        if (profile.getIncomeCertificateKey() != null) {
-            incomeUrl = s3Service.generatePresignedUrl(profile.getIncomeCertificateKey());
+        String selfImageUrl = null;
+        if (profile.getSelfImageKey() != null) {
+            selfImageUrl = s3Service.generatePresignedUrl(profile.getSelfImageKey());
         }
 
-        String hsMarksheetUrl = null;
-        if (profile.getHsMarksheetKey() != null) {
-            hsMarksheetUrl = s3Service.generatePresignedUrl(profile.getHsMarksheetKey());
-        }
-
-        String bankPassbookUrl = null;
-        if (profile.getBankPassbookKey() != null) {
-            bankPassbookUrl = s3Service.generatePresignedUrl(profile.getBankPassbookKey());
+        String selfSignatureUrl = null;
+        if (profile.getSelfSignatureKey() != null) {
+            selfSignatureUrl = s3Service.generatePresignedUrl(profile.getSelfSignatureKey());
         }
 
         return new StudentProfileResponse(
                 profile.getId(),
                 user.getFullName(),
                 user.getEmail(),
+                user.getPhoneNumber(),
                 profile.getDateOfBirth(),
                 profile.getGender(),
                 profile.getAddress(),
                 profile.getAadhaarNumber(),
-                profile.getLastQualificationMarks(),
-                profile.getLastQualificationCourse(),
-                profile.getAnnualIncome(),
                 profile.getIsWestBengalResident(),
-                profile.getBankAccountNumber(),
-                profile.getIfscCode(),
                 aadhaarUrl,
-                incomeUrl,
-                hsMarksheetUrl,
-                bankPassbookUrl
+                selfImageUrl,
+                selfSignatureUrl
         );
     }
 }

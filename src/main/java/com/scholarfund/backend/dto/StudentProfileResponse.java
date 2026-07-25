@@ -6,21 +6,15 @@ public record StudentProfileResponse(
         Long profileId,
         String fullName,
         String email,
+        String phoneNumber,
         LocalDate dateOfBirth,
         String gender,
         String address,
         String aadhaarNumber,
-        Double lastQualificationMarks,
-        String lastQualificationCourse,
-        Double annualIncome,
         Boolean isWestBengalResident,
-        String bankAccountNumber,
-        String ifscCode,
 
         // AWS Presigned URLs for frontend display
         String aadhaarDocumentUrl,
-        String incomeCertificateUrl,
-        String hsMarksheetUrl,
-        String bankPassbookUrl
-
+        String selfImageDocUrl,
+        String selfSignatureUrl
 ) {}

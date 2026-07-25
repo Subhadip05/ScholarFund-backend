@@ -3,6 +3,9 @@ package com.scholarfund.backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "scholarship_applications")
 @Getter
@@ -29,16 +32,46 @@ public class ScholarshipApplication extends Auditable {
     private ApplicationStatus status;
 
     @Column(nullable = false)
-    private String courseName; // e.g., "B.Tech Computer Science"
+    private String courseName;
 
-    private String academicYear; // e.g., "2026-2027"
+    @Column(name = "academic_year")
+    private String academicYear;
 
-    @Column(columnDefinition = "TEXT")
-    private String studentRemarks;
+    @Column(name = "last_qualification_marks")
+    private Double lastQualificationMarks;
 
-    @Column(columnDefinition = "TEXT")
-    private String instituteRemarks;
+    @Column(name = "last_qualification_course")
+    private String lastQualificationCourse;
 
-    @Column(columnDefinition = "TEXT")
-    private String govtRemarks;
+    @Column(name = "last_exam_rollno")
+    private String lastQualificationExamRollNo;
+
+    @Column(name = "pass_out_board_name")
+    private String passOutBoardName;
+
+    @Column(name = "annual_income")
+    private Double annualIncome;
+
+    @Column(name = "bank_account_number")
+    private String bankAccountNumber;
+
+    @Column(name = "ifsc_code")
+    private String ifscCode;
+
+    // AWS S3 FILE KEYS : incomeCertificateKey,hsMarksheetKey, bankPassbookKey
+    // Store the path of the file into DocumentFile table, not the file itself
+
+    @Column(name = "income_certificate_key")
+    private String incomeCertificateKey;
+
+    @Column(name = "hs_marksheet_key")
+    private String hsMarksheetKey;
+
+    @Column(name = "bank_passbook_key")
+    private String bankPassbookKey;
+
+    // CascadeType.ALL means when save the Application, it automatically saves the History records inside it.
+    @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ApplicationHistory> trackRecords = new ArrayList<>();
 }
