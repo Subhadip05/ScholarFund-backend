@@ -115,6 +115,10 @@ public class ScholarshipApplicationService {
         ScholarshipApplication savedApplication = applicationRepository.save(application);
         log.info("Scholarship application submitted successfully for student: {}", email);
 
+        studentProfile.setIsApplicationSubmit(true);
+        studentProfileRepository.save(studentProfile);
+        log.info("Scholarship application submitted by : {}", studentProfile.getFullName());
+
         return mapToResponse(savedApplication);
     }
 

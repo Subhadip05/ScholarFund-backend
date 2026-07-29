@@ -12,6 +12,7 @@ public record StudentProfileResponse(
         String address,
         String aadhaarNumber,
         Boolean isWestBengalResident,
+        Boolean isApplicationSubmitted,
 
         // AWS Presigned URLs for frontend display
         String aadhaarDocumentUrl,

@@ -111,6 +111,7 @@ public class StudentProfileService {
                 profile.getAddress(),
                 profile.getAadhaarNumber(),
                 profile.getIsWestBengalResident(),
+                profile.getIsApplicationSubmit(),
                 aadhaarUrl,
                 selfImageUrl,
                 selfSignatureUrl

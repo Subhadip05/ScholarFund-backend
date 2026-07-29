@@ -43,6 +43,10 @@ public class StudentProfile extends Auditable {
     @Column(name = "is_west_bengal_resident")
     private Boolean isWestBengalResident;
 
+    @Column(name = "is_application_submit", nullable = false)
+    @Builder.Default
+    private Boolean isApplicationSubmit = false;
+
     // AWS S3 FILE KEYS : aadhaarDocumentKey,selfImageKey, selfSignatureKey
     // Store the path of the file into DocumentFile table, not the file itself
 
