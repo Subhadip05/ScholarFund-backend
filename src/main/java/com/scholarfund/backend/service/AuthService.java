@@ -251,7 +251,8 @@ public class AuthService {
                 refreshTokenString,
                 user.getRole().getRoleName(),
                 user.getFullName(),
-                user.getEmail()
+                user.getEmail(),
+                user.getPhoneNumber()
         );
     }
 
