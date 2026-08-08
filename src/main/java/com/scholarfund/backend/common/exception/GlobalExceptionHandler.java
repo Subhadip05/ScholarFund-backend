@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @RestControllerAdvice
 @Slf4j
@@ -41,6 +42,19 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<Object>> handleMaxSizeException(MaxUploadSizeExceededException ex) {
+        log.error("File upload failed: File size exceeded the 1MB limit.");
+
+        ApiResponse<Object> response = new ApiResponse<>(
+                HttpStatus.CONTENT_TOO_LARGE.value(),
+                ErrorCode.FILE_TOO_LARGE.name(),
+                "The uploaded file is larger than 1MB. Please ensure the file size is under 1MB.",
+                null
+        );
+        return new ResponseEntity<>(response, HttpStatus.CONTENT_TOO_LARGE);
+    }
+
     private HttpStatus mapErrorCodeToHttpStatus(ErrorCode errorCode) {
         if (errorCode == null) return HttpStatus.INTERNAL_SERVER_ERROR;
 
@@ -50,6 +64,7 @@ public class GlobalExceptionHandler {
             case ALREADY_EXIST -> HttpStatus.CONFLICT;
             case FORBIDDEN -> HttpStatus.FORBIDDEN;
             case BAD_REQUEST -> HttpStatus.BAD_REQUEST;
+            case FILE_TOO_LARGE -> HttpStatus.CONTENT_TOO_LARGE;
             default -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
     }

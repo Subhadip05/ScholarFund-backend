@@ -1,7 +1,7 @@
 package com.scholarfund.backend.controller;
 
 import com.scholarfund.backend.common.model.ApiResponse;
-import com.scholarfund.backend.entity.DocumentFile;
+import com.scholarfund.backend.dto.DocumentUploadResponse;
 import com.scholarfund.backend.service.DocumentFileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,17 +23,16 @@ public class DocumentFileController {
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<Map<String, Long>>> uploadDocument(
+    public ResponseEntity<ApiResponse<DocumentUploadResponse>> uploadDocument(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "folder", defaultValue = "general") String folder) {
 
         log.info("Background file upload initiated for folder: {}", folder);
 
-        DocumentFile savedDocument = documentFileService.uploadDocument(file, folder);
+        DocumentUploadResponse response = documentFileService.uploadDocument(file, folder);
 
-        // We return the database ID of the file so the frontend can hold onto it
         return ResponseEntity.ok(
-                new ApiResponse<>(200, "SUCCESS", "File uploaded successfully", Map.of("documentId", savedDocument.getId()))
+                new ApiResponse<>(200, "SUCCESS", "File uploaded successfully", response)
         );
     }
 

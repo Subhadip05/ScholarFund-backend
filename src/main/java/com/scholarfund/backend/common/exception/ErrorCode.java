@@ -26,6 +26,7 @@ public enum ErrorCode {
     ERROR_UPLOADING_FILE,
     ERROR_GENERATING_REPORT,
     EMPTY_FILE_REQUEST,
+    FILE_TOO_LARGE,
 
     // ScholarFund Specific
     USER_NOT_FOUND,

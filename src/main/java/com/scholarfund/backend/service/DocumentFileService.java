@@ -2,6 +2,7 @@ package com.scholarfund.backend.service;
 
 import com.scholarfund.backend.common.exception.ErrorCode;
 import com.scholarfund.backend.common.exception.ScholarFundException;
+import com.scholarfund.backend.dto.DocumentUploadResponse;
 import com.scholarfund.backend.entity.DocumentFile;
 import com.scholarfund.backend.repository.DocumentFileRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class DocumentFileService {
     private final DocumentFileRepository documentFileRepository;
 
     @Transactional
-    public DocumentFile uploadDocument(MultipartFile file, String folder) {
+    public DocumentUploadResponse uploadDocument(MultipartFile file, String folder) {
         // 1. Upload to AWS S3
         String s3Key = s3Service.uploadFile(file, folder);
 
@@ -31,7 +32,11 @@ public class DocumentFileService {
                 .fileSize(file.getSize())
                 .build();
 
-        return documentFileRepository.save(document);
+        DocumentFile savedDocument = documentFileRepository.saveAndFlush(document);
+        String documentUrl = s3Service.generatePresignedUrl(s3Key);
+
+        // 4. Return both ID and URL
+        return new DocumentUploadResponse(savedDocument.getId(), documentUrl);
     }
 
     public String getDocumentViewUrl(Long documentId) {

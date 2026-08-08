@@ -12,8 +12,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/api/institute/profile")
+@RequestMapping("/api/institute")
 @RequiredArgsConstructor
 @Slf4j
 public class InstituteProfileController {
@@ -21,7 +23,7 @@ public class InstituteProfileController {
     private final InstituteProfileService instituteProfileService;
 
     @PreAuthorize("hasRole('COLLEGE')")
-    @PostMapping
+    @PostMapping("/save-profile")
     public ResponseEntity<ApiResponse<InstituteProfileResponse>> updateInstituteProfile(@RequestBody InstituteProfileDto requestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         assert authentication != null;
@@ -37,7 +39,7 @@ public class InstituteProfileController {
     }
 
     @PreAuthorize("hasRole('COLLEGE')")
-    @GetMapping
+    @GetMapping("/get-profile")
     public ResponseEntity<ApiResponse<InstituteProfileResponse>> getProfile() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         assert authentication != null;
@@ -49,6 +51,21 @@ public class InstituteProfileController {
 
         return ResponseEntity.ok(
                 new ApiResponse<>(200, "SUCCESS", "Institute Profile fetched successfully", profileData)
+        );
+    }
+
+    @GetMapping("/verified-list")
+    public ResponseEntity<ApiResponse<List<InstituteProfileResponse>>> getVerifiedInstitutes() {
+        log.info("Fetching all verified institutes");
+
+        List<InstituteProfileResponse> verifiedList = instituteProfileService.getVerifiedInstitutes();
+
+        String message = verifiedList.isEmpty()
+                ? "There are no verified colleges available"
+                : "Verified institutes fetched successfully";
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(200, "SUCCESS", message, verifiedList)
         );
     }
 }

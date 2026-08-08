@@ -98,6 +98,13 @@ public class InstituteProfileService {
         return "Institute verified successfully";
     }
 
+    @Transactional(readOnly = true)
+    public List<InstituteProfileResponse> getVerifiedInstitutes() {
+        return instituteProfileRepository.findByVerifiedByGovtTrue().stream()
+                .map(profile -> mapToResponse(profile, profile.getUser()))
+                .collect(Collectors.toList());
+    }
+
     private InstituteProfileResponse mapToResponse(InstituteProfile profile, User user) {
 
         String certUrl = null;

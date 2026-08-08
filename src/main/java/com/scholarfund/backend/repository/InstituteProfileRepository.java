@@ -15,4 +15,5 @@ public interface InstituteProfileRepository extends JpaRepository<InstituteProfi
     boolean existsByCollegeCode(String collegeCode);
 
     List<InstituteProfile> findByVerifiedByGovtFalse();
+    List<InstituteProfile> findByVerifiedByGovtTrue();
 }

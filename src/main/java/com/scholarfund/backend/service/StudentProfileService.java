@@ -42,6 +42,21 @@ public class StudentProfileService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ScholarFundException("User not found", ErrorCode.USER_NOT_FOUND, null));
 
+        //First updating user details
+        if (dto.fullName() != null && !dto.fullName().isBlank()) {
+            user.setFullName(dto.fullName());
+        }
+
+        if (dto.phoneNumber() != null && !dto.phoneNumber().equals(user.getPhoneNumber())) {
+            if (userRepository.existsByPhoneNumber(dto.phoneNumber())) {
+                throw new ScholarFundException("Phone number already registered to another user", ErrorCode.ALREADY_EXIST, null);
+            }
+            user.setPhoneNumber(dto.phoneNumber());
+        }
+        userRepository.save(user);
+
+
+        //Then saving Student Details
         StudentProfile profile = profileRepository.findByUser(user).orElse(new StudentProfile());
 
         profile.setUser(user);
