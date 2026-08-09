@@ -14,5 +14,6 @@ public record ApplicationSubmitRequest(
 
         Long incomeFileId,
         Long hsMarksheetFileId,
-        Long bankPassbookFileId
+        Long bankPassbookFileId,
+        Long admissionReceiptFileId
 ) {}

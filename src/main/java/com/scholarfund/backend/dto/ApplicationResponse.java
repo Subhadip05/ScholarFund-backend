@@ -22,6 +22,7 @@ public record ApplicationResponse(
         String incomeCertificateUrl,
         String hsMarksheetUrl,
         String bankPassbookUrl,
+        String admissionReceiptUrl,
 
         List<ApplicationHistoryDto> timeline
 ) {}

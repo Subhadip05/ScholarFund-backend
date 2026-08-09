@@ -70,6 +70,9 @@ public class ScholarshipApplication extends Auditable {
     @Column(name = "bank_passbook_key")
     private String bankPassbookKey;
 
+    @Column(name = "admission_receipt_key")
+    private String admissionReceiptKey;
+
     // CascadeType.ALL means when save the Application, it automatically saves the History records inside it.
     @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

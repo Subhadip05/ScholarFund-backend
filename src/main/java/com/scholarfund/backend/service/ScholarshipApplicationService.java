@@ -82,6 +82,12 @@ public class ScholarshipApplicationService {
         DocumentFile bankPassbookDoc = documentFileRepository.findById(request.bankPassbookFileId())
                 .orElseThrow(() ->  new ScholarFundException("Bank Passbook reference not found.", ErrorCode.FILE_NOT_FOUND, null));
 
+        if(request.admissionReceiptFileId() == null){
+            throw new ScholarFundException("Admission Receipt file is required.", ErrorCode.BAD_REQUEST, null);
+        }
+        DocumentFile admissionReceiptDoc = documentFileRepository.findById(request.admissionReceiptFileId())
+                .orElseThrow(() ->  new ScholarFundException("Admission Receipt reference not found.", ErrorCode.FILE_NOT_FOUND, null));
+
 
         ScholarshipApplication application = ScholarshipApplication.builder()
                 .studentProfile(studentProfile)
@@ -98,6 +104,7 @@ public class ScholarshipApplicationService {
                 .incomeCertificateKey(incomeDoc.getS3Key())
                 .hsMarksheetKey(hsMarkSheetDoc.getS3Key())
                 .bankPassbookKey(bankPassbookDoc.getS3Key())
+                .admissionReceiptKey(admissionReceiptDoc.getS3Key())
                 .status(ApplicationStatus.SUBMITTED)
                 .build();
 
@@ -140,6 +147,11 @@ public class ScholarshipApplicationService {
             bankPassbookUrl = s3Service.generatePresignedUrl(savedApplication.getBankPassbookKey());
         }
 
+        String admissionReceiptUrl = null;
+        if (savedApplication.getAdmissionReceiptKey() != null) {
+            admissionReceiptUrl = s3Service.generatePresignedUrl(savedApplication.getAdmissionReceiptKey());
+        }
+
         // Map the track records into our DTO for the frontend
         List<ApplicationHistoryDto> timeline = savedApplication.getTrackRecords().stream()
                 .map(history -> new ApplicationHistoryDto(
@@ -168,6 +180,7 @@ public class ScholarshipApplicationService {
                 incomeUrl,
                 hsMarksheetUrl,
                 bankPassbookUrl,
+                admissionReceiptUrl,
                 timeline
         );
     }
