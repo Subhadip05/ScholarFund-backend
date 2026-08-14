@@ -12,6 +12,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/applications")
 @RequiredArgsConstructor
@@ -34,6 +36,41 @@ public class ScholarshipApplicationController {
 
         return ResponseEntity.ok(
                 new ApiResponse<>(200, "SUCCESS", "Scholarship application submitted successfully", response)
+        );
+    }
+
+    @PreAuthorize("hasAnyRole('INSTITUTE')")
+    @GetMapping("/institute/{instituteProfileId}")
+    public ResponseEntity<ApiResponse<List<ApplicationResponse>>> getApplicationsByInstituteId(
+            @PathVariable Long instituteProfileId) {
+
+        log.info("Fetching scholarship applications for institute profile ID: {}", instituteProfileId);
+
+        List<ApplicationResponse> applications = applicationService.getApplicationsByInstituteId(instituteProfileId);
+
+        String message = applications.isEmpty()
+                ? "No applications found for this institute."
+                : "Applications fetched successfully.";
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(200, "SUCCESS", message, applications)
+        );
+    }
+
+    @GetMapping("/student/{studentProfileId}")
+    public ResponseEntity<ApiResponse<List<ApplicationResponse>>> getApplicationsByStudentId(
+            @PathVariable Long studentProfileId) {
+
+        log.info("Fetching scholarship applications for student profile ID: {}", studentProfileId);
+
+        List<ApplicationResponse> applications = applicationService.getApplicationsByStudentId(studentProfileId);
+
+        String message = applications.isEmpty()
+                ? "No applications found for this student."
+                : "Student applications fetched successfully.";
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(200, "SUCCESS", message, applications)
         );
     }
 }

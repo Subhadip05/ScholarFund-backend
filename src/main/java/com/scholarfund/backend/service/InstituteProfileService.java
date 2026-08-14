@@ -9,6 +9,7 @@ import com.scholarfund.backend.entity.InstituteProfile;
 import com.scholarfund.backend.entity.User;
 import com.scholarfund.backend.repository.DocumentFileRepository;
 import com.scholarfund.backend.repository.InstituteProfileRepository;
+import com.scholarfund.backend.repository.ScholarshipApplicationRepository;
 import com.scholarfund.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,18 @@ public class InstituteProfileService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ScholarFundException("User not found", ErrorCode.USER_NOT_FOUND, null));
+
+        if (dto.officerName() != null && !dto.officerName().isBlank()) {
+            user.setFullName(dto.officerName());
+        }
+
+        if (dto.officerPhoneNo() != null && !dto.officerPhoneNo().equals(user.getPhoneNumber())) {
+            if (userRepository.existsByPhoneNumber(dto.officerPhoneNo())) {
+                throw new ScholarFundException("Phone number already registered to another user", ErrorCode.ALREADY_EXIST, null);
+            }
+            user.setPhoneNumber(dto.officerPhoneNo());
+        }
+        userRepository.save(user);
 
         InstituteProfile profile = instituteProfileRepository.findByUser(user).orElse(new InstituteProfile());
 
@@ -106,7 +119,6 @@ public class InstituteProfileService {
     }
 
     private InstituteProfileResponse mapToResponse(InstituteProfile profile, User user) {
-
         String certUrl = null;
         if (profile.getAffiliationCertificateKey() != null) {
             certUrl = s3Service.generatePresignedUrl(profile.getAffiliationCertificateKey());
@@ -115,6 +127,9 @@ public class InstituteProfileService {
         return new InstituteProfileResponse(
                 profile.getId(),
                 user.getEmail(),
+                user.getFullName(),
+                user.getPhoneNumber(),
+                profile.getVerifiedByGovt(),
                 profile.getInstituteName(),
                 profile.getCollegeCode(),
                 profile.getUniversityAffiliation(),

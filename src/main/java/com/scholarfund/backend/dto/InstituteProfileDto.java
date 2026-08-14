@@ -5,6 +5,8 @@ public record InstituteProfileDto(
         String collegeCode,
         String universityAffiliation,
         String principalName,
+        String officerPhoneNo,
+        String officerName,
         String address,
         Long affiliationCertificateFileId
 ) {}

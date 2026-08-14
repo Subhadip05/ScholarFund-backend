@@ -126,11 +126,37 @@ public class ScholarshipApplicationService {
         studentProfileRepository.save(studentProfile);
         log.info("Scholarship application submitted by : {}", studentProfile.getFullName());
 
-        return mapToResponse(savedApplication);
+        return applicationMapToResponse(savedApplication);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ApplicationResponse> getApplicationsByInstituteId(Long instituteProfileId) {
+        if (!instituteProfileRepository.existsById(instituteProfileId)) {
+            throw new ScholarFundException("Institute profile not found.", ErrorCode.NOT_FOUND, null);
+        }
+
+        List<ScholarshipApplication> applications = applicationRepository.findByInstituteProfileId(instituteProfileId);
+
+        return applications.stream()
+                .map(this::applicationMapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ApplicationResponse> getApplicationsByStudentId(Long studentProfileId) {
+        if (!studentProfileRepository.existsById(studentProfileId)) {
+            throw new ScholarFundException("Student profile not found.", ErrorCode.NOT_FOUND, null);
+        }
+
+        List<ScholarshipApplication> applications = applicationRepository.findByStudentProfileId(studentProfileId);
+
+        return applications.stream()
+                .map(this::applicationMapToResponse)
+                .collect(Collectors.toList());
     }
 
     // Helper method to dynamically generate the 15-minute secure AWS URLs
-    private ApplicationResponse mapToResponse(ScholarshipApplication savedApplication) {
+    public ApplicationResponse applicationMapToResponse(ScholarshipApplication savedApplication) {
 
         String incomeUrl = null;
         if (savedApplication.getIncomeCertificateKey() != null) {

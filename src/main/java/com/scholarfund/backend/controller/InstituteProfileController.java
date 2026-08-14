@@ -24,7 +24,7 @@ public class InstituteProfileController {
 
     @PreAuthorize("hasRole('COLLEGE')")
     @PostMapping("/save-profile")
-    public ResponseEntity<ApiResponse<InstituteProfileResponse>> updateInstituteProfile(@RequestBody InstituteProfileDto requestDto) {
+    public ResponseEntity<ApiResponse<InstituteProfileResponse>> saveInstituteProfile(@RequestBody InstituteProfileDto requestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         assert authentication != null;
         String email = authentication.getName();

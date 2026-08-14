@@ -2,7 +2,10 @@ package com.scholarfund.backend.dto;
 
 public record InstituteProfileResponse(
         Long profileId,
-        String email, // from User table
+        String email,
+        String officerName,
+        String officerPhoneNo,
+        boolean isVerifyByGovt,
         String instituteName,
         String collegeCode,
         String universityAffiliation,
