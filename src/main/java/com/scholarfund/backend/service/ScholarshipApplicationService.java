@@ -4,6 +4,7 @@ import com.scholarfund.backend.common.exception.ErrorCode;
 import com.scholarfund.backend.common.exception.ScholarFundException;
 import com.scholarfund.backend.dto.ApplicationHistoryDto;
 import com.scholarfund.backend.dto.ApplicationResponse;
+import com.scholarfund.backend.dto.ApplicationStatusUpdateRequest;
 import com.scholarfund.backend.dto.ApplicationSubmitRequest;
 import com.scholarfund.backend.entity.*;
 import com.scholarfund.backend.repository.*;
@@ -209,5 +210,49 @@ public class ScholarshipApplicationService {
                 admissionReceiptUrl,
                 timeline
         );
+    }
+
+    @Transactional
+    public ApplicationResponse updateApplicationStatus(Long applicationId,
+                                                       ApplicationStatusUpdateRequest request,
+                                                       String actorEmail) {
+
+        ScholarshipApplication application = applicationRepository.findById(applicationId)
+                .orElseThrow(() -> new ScholarFundException("Application not found", ErrorCode.NOT_FOUND, null));
+
+        User actor = userRepository.findByEmail(actorEmail)
+                .orElseThrow(() -> new ScholarFundException("User not found", ErrorCode.USER_NOT_FOUND, null));
+
+        String actorRole = actor.getRole().getRoleName().toUpperCase();
+        String actionByName = resolveActorName(actor, actorRole);
+
+        application.setStatus(request.statusAction());
+
+        ApplicationHistory statusUpdateHistory = ApplicationHistory.builder()
+                .application(application)
+                .actionTaken("Status updated to " + request.statusAction().name())
+                .actionBy(actionByName)
+                .actorRole(actorRole)
+                .remarks(request.actionRemarks())
+                .actionTime(LocalDateTime.now())
+                .build();
+
+        application.getTrackRecords().add(statusUpdateHistory);
+        ScholarshipApplication savedApplication = applicationRepository.save(application);
+
+        log.info("Application ID {} status updated to {} by {}", applicationId, request.statusAction(), actorEmail);
+
+        return applicationMapToResponse(savedApplication);
+    }
+
+    private String resolveActorName(User actor, String roleName) {
+        if ("INSTITUTE".equals(roleName)) {
+            return instituteProfileRepository.findByUser(actor)
+                    .map(InstituteProfile::getInstituteName)
+                    .orElse(actor.getEmail());
+        } else if ("GOVT".equals(roleName)) {
+            return "Government Administrator";
+        }
+        return actor.getEmail();
     }
 }

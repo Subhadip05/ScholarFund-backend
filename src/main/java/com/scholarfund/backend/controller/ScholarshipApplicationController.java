@@ -2,14 +2,18 @@ package com.scholarfund.backend.controller;
 
 import com.scholarfund.backend.common.model.ApiResponse;
 import com.scholarfund.backend.dto.ApplicationResponse;
+import com.scholarfund.backend.dto.ApplicationStatusUpdateRequest;
 import com.scholarfund.backend.dto.ApplicationSubmitRequest;
 import com.scholarfund.backend.service.ScholarshipApplicationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -71,6 +75,25 @@ public class ScholarshipApplicationController {
 
         return ResponseEntity.ok(
                 new ApiResponse<>(200, "SUCCESS", message, applications)
+        );
+    }
+
+    @PreAuthorize("hasAnyRole('INSTITUTE', 'GOVT')")
+    @PutMapping("/{applicationId}/update-status")
+    public ResponseEntity<ApiResponse<ApplicationResponse>> updateApplicationStatus(
+            @PathVariable Long applicationId,
+            @Valid @RequestBody ApplicationStatusUpdateRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        log.info("User {} is updating application ID {} to status {}",
+                userDetails.getUsername(), applicationId, request.statusAction());
+
+        ApplicationResponse updatedApplication = applicationService.updateApplicationStatus(
+                applicationId, request, userDetails.getUsername()
+        );
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(200, "SUCCESS", "Application status updated successfully.", updatedApplication)
         );
     }
 }
