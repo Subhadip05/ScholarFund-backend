@@ -13,8 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -93,6 +95,7 @@ public class ScholarshipApplicationService {
         ScholarshipApplication application = ScholarshipApplication.builder()
                 .studentProfile(studentProfile)
                 .instituteProfile(instituteProfile)
+                .applicationNumber(generateApplicationNumber(instituteProfile.getInstituteName()))
                 .courseName(request.courseName())
                 .academicYear(request.academicYear())
                 .lastQualificationMarks(request.lastQualificationMarks())
@@ -128,6 +131,17 @@ public class ScholarshipApplicationService {
         log.info("Scholarship application submitted by : {}", studentProfile.getFullName());
 
         return applicationMapToResponse(savedApplication);
+    }
+
+    public String generateApplicationNumber(String instituteName) {
+        String prefix = (instituteName != null && instituteName.trim().length() >= 2)
+                ? instituteName.trim().substring(0, 2).toUpperCase()
+                : "SC";
+
+        int year = LocalDate.now().getYear();
+        String suffix = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+
+        return String.format("%s-%d-%s", prefix, year, suffix);
     }
 
     @Transactional(readOnly = true)

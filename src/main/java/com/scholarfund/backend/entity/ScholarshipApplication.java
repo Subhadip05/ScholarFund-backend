@@ -31,6 +31,9 @@ public class ScholarshipApplication extends Auditable {
     @Column(nullable = false)
     private ApplicationStatus status;
 
+    @Column(name = "application_number", unique = true, nullable = false, length = 30)
+    private String applicationNumber;
+
     @Column(nullable = false)
     private String courseName;
 

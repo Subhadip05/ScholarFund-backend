@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ScholarshipApplicationRepository extends JpaRepository<ScholarshipApplication, Long> {
@@ -18,4 +19,6 @@ public interface ScholarshipApplicationRepository extends JpaRepository<Scholars
 
     // Prevent students from applying multiple times in the same academic year
     boolean existsByStudentProfileAndAcademicYear(StudentProfile studentProfile, String academicYear);
+
+    Optional<ScholarshipApplication> findByApplicationNumber(String applicationNumber);
 }
