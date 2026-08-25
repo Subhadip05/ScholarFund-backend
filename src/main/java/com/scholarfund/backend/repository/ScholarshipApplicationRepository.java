@@ -1,5 +1,6 @@
 package com.scholarfund.backend.repository;
 
+import com.scholarfund.backend.entity.ApplicationStatus;
 import com.scholarfund.backend.entity.ScholarshipApplication;
 import com.scholarfund.backend.entity.StudentProfile;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,4 +22,9 @@ public interface ScholarshipApplicationRepository extends JpaRepository<Scholars
     boolean existsByStudentProfileAndAcademicYear(StudentProfile studentProfile, String academicYear);
 
     Optional<ScholarshipApplication> findByApplicationNumber(String applicationNumber);
+
+    // Fetch by status, latest first (assumes created timestamp field is `createdAt` or use `id`)
+    List<ScholarshipApplication> findByStatusOrderByCreatedAtDesc(ApplicationStatus status);
+
+    List<ScholarshipApplication> findAllByOrderByCreatedAtDesc();
 }

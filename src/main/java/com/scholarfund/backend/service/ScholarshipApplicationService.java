@@ -227,10 +227,7 @@ public class ScholarshipApplicationService {
     }
 
     @Transactional
-    public ApplicationResponse updateApplicationStatus(Long applicationId,
-                                                       ApplicationStatusUpdateRequest request,
-                                                       String actorEmail) {
-
+    public ApplicationResponse updateApplicationStatus(Long applicationId, ApplicationStatusUpdateRequest request, String actorEmail) {
         ScholarshipApplication application = applicationRepository.findById(applicationId)
                 .orElseThrow(() -> new ScholarFundException("Application not found", ErrorCode.NOT_FOUND, null));
 
@@ -238,25 +235,46 @@ public class ScholarshipApplicationService {
                 .orElseThrow(() -> new ScholarFundException("User not found", ErrorCode.USER_NOT_FOUND, null));
 
         String actorRole = actor.getRole().getRoleName().toUpperCase();
-        String actionByName = resolveActorName(actor, actorRole);
+        ApplicationStatus newStatus = request.statusAction();
+        ApplicationStatus currentStatus = application.getStatus();
 
-        application.setStatus(request.statusAction());
+        // 1. If application is already finalized
+        if (currentStatus == ApplicationStatus.DISBURSED ||
+                currentStatus == ApplicationStatus.ADMIN_REJECTED ||
+                currentStatus == ApplicationStatus.INSTITUTE_REJECTED) {
+            throw new ScholarFundException("Cannot modify an already finalized application.", ErrorCode.BAD_REQUEST, null);
+        }
 
-        ApplicationHistory statusUpdateHistory = ApplicationHistory.builder()
+        // 2. Validate Institute actions
+        if ("INSTITUTE".equals(actorRole)) {
+            if (newStatus != ApplicationStatus.INSTITUTE_VERIFIED && newStatus != ApplicationStatus.INSTITUTE_REJECTED) {
+                throw new ScholarFundException("Colleges can only verify or reject applications.", ErrorCode.FORBIDDEN, null);
+            }
+        }
+
+        // 3. Validate Govt actions
+        if ("GOVT".equals(actorRole)) {
+            if (currentStatus != ApplicationStatus.INSTITUTE_VERIFIED && currentStatus != ApplicationStatus.ADMIN_APPROVED) {
+                throw new ScholarFundException("Govt can only review applications already verified by the college.", ErrorCode.BAD_REQUEST, null);
+            }
+        }
+
+        // 4. Update status & append history
+        application.setStatus(newStatus);
+
+        ApplicationHistory history = ApplicationHistory.builder()
                 .application(application)
-                .actionTaken("Status updated to " + request.statusAction().name())
-                .actionBy(actionByName)
+                .actionTaken("Status updated to " + newStatus.name())
+                .actionBy(resolveActorName(actor, actorRole))
                 .actorRole(actorRole)
                 .remarks(request.actionRemarks())
                 .actionTime(LocalDateTime.now())
                 .build();
 
-        application.getTrackRecords().add(statusUpdateHistory);
-        ScholarshipApplication savedApplication = applicationRepository.save(application);
+        application.getTrackRecords().add(history);
+        ScholarshipApplication saved = applicationRepository.save(application);
 
-        log.info("Application ID {} status updated to {} by {}", applicationId, request.statusAction(), actorEmail);
-
-        return applicationMapToResponse(savedApplication);
+        return applicationMapToResponse(saved);
     }
 
     private String resolveActorName(User actor, String roleName) {
@@ -268,5 +286,19 @@ public class ScholarshipApplicationService {
             return "Government Administrator";
         }
         return actor.getEmail();
+    }
+
+    public List<ApplicationResponse> getApplications(ApplicationStatus status) {
+        List<ScholarshipApplication> applications;
+
+        if (status != null) {
+            applications = applicationRepository.findByStatusOrderByCreatedAtDesc(status);
+        } else {
+            applications = applicationRepository.findAllByOrderByCreatedAtDesc();
+        }
+
+        return applications.stream()
+                .map(this::applicationMapToResponse)
+                .toList();
     }
 }

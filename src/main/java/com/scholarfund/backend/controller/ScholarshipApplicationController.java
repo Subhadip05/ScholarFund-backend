@@ -4,6 +4,7 @@ import com.scholarfund.backend.common.model.ApiResponse;
 import com.scholarfund.backend.dto.ApplicationResponse;
 import com.scholarfund.backend.dto.ApplicationStatusUpdateRequest;
 import com.scholarfund.backend.dto.ApplicationSubmitRequest;
+import com.scholarfund.backend.entity.ApplicationStatus;
 import com.scholarfund.backend.service.ScholarshipApplicationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -94,6 +95,24 @@ public class ScholarshipApplicationController {
 
         return ResponseEntity.ok(
                 new ApiResponse<>(200, "SUCCESS", "Application status updated successfully.", updatedApplication)
+        );
+    }
+
+    @PreAuthorize("hasAnyRole('GOVT', 'ADMIN')")
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<ApplicationResponse>>> getApplications(
+            @RequestParam(required = false) ApplicationStatus status) {
+
+        log.info("Fetching applications with status filter: {}", status);
+
+        List<ApplicationResponse> applications = applicationService.getApplications(status);
+
+        String message = applications.isEmpty()
+                ? "No applications found."
+                : "Applications fetched successfully.";
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(200, "SUCCESS", message, applications)
         );
     }
 }
