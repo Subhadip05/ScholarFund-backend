@@ -112,7 +112,7 @@ public class ScholarshipApplicationController {
                 : "Applications fetched successfully.";
 
         return ResponseEntity.ok(
-                new ApiResponse<>(200, "SUCCESS", message, applications)
+                new ApiResponse<>(200, "SUCCESS", message, applications,applications.size())
         );
     }
 }

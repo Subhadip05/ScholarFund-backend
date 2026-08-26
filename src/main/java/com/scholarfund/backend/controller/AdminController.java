@@ -20,7 +20,7 @@ public class AdminController {
     private final InstituteProfileService instituteProfileService;
 
     @PreAuthorize("hasRole('GOVT')")
-    @GetMapping("/institutes/unverified")
+    @GetMapping("/institutes/unverified-list")
     public ResponseEntity<ApiResponse<List<InstituteProfileResponse>>> getUnverifiedInstitutes() {
         log.info("Admin fetching all unverified institutes");
 
@@ -31,7 +31,7 @@ public class AdminController {
                 : "Unverified institutes fetched successfully";
 
         return ResponseEntity.ok(
-                new ApiResponse<>(200, "SUCCESS", message, unverifiedList)
+                new ApiResponse<>(200, "SUCCESS", message, unverifiedList,unverifiedList.size())
         );
     }
 
