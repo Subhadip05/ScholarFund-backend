@@ -19,19 +19,35 @@ public class AdminController {
 
     private final InstituteProfileService instituteProfileService;
 
+//    @PreAuthorize("hasRole('GOVT')")
+//    @GetMapping("/institutes/unverified-list")
+//    public ResponseEntity<ApiResponse<List<InstituteProfileResponse>>> getUnverifiedInstitutes() {
+//        log.info("Admin fetching all unverified institutes");
+//
+//        List<InstituteProfileResponse> unverifiedList = instituteProfileService.getUnverifiedInstitutes();
+//
+//        String message = unverifiedList.isEmpty()
+//                ? "There is no unverified college"
+//                : "Unverified institutes fetched successfully";
+//
+//        return ResponseEntity.ok(
+//                new ApiResponse<>(200, "SUCCESS", message, unverifiedList,unverifiedList.size())
+//        );
+//    }
+
     @PreAuthorize("hasRole('GOVT')")
-    @GetMapping("/institutes/unverified-list")
-    public ResponseEntity<ApiResponse<List<InstituteProfileResponse>>> getUnverifiedInstitutes() {
-        log.info("Admin fetching all unverified institutes");
+    @GetMapping("/institutes-list")
+    public ResponseEntity<ApiResponse<List<InstituteProfileResponse>>> getAllInstitutes() {
+        log.info("Admin fetching all institutes");
 
-        List<InstituteProfileResponse> unverifiedList = instituteProfileService.getUnverifiedInstitutes();
+        List<InstituteProfileResponse> institutes = instituteProfileService.getAllInstitutes();
 
-        String message = unverifiedList.isEmpty()
-                ? "There is no unverified college"
-                : "Unverified institutes fetched successfully";
+        String message = institutes.isEmpty()
+                ? "There is no college"
+                : "All institutes fetched successfully";
 
         return ResponseEntity.ok(
-                new ApiResponse<>(200, "SUCCESS", message, unverifiedList,unverifiedList.size())
+                new ApiResponse<>(200, "SUCCESS", message, institutes,institutes.size())
         );
     }
 

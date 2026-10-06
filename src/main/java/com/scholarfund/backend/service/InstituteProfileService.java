@@ -9,7 +9,6 @@ import com.scholarfund.backend.entity.InstituteProfile;
 import com.scholarfund.backend.entity.User;
 import com.scholarfund.backend.repository.DocumentFileRepository;
 import com.scholarfund.backend.repository.InstituteProfileRepository;
-import com.scholarfund.backend.repository.ScholarshipApplicationRepository;
 import com.scholarfund.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -88,9 +87,16 @@ public class InstituteProfileService {
     }
 
     // --- ADMIN METHODS ---
+//    @Transactional(readOnly = true)
+//    public List<InstituteProfileResponse> getUnverifiedInstitutes() {
+//        return instituteProfileRepository.findByVerifiedByGovtFalse().stream()
+//                .map(profile -> mapToResponse(profile, profile.getUser()))
+//                .collect(Collectors.toList());
+//    }
+
     @Transactional(readOnly = true)
-    public List<InstituteProfileResponse> getUnverifiedInstitutes() {
-        return instituteProfileRepository.findByVerifiedByGovtFalse().stream()
+    public List<InstituteProfileResponse> getAllInstitutes() {
+        return instituteProfileRepository.findAll().stream()
                 .map(profile -> mapToResponse(profile, profile.getUser()))
                 .collect(Collectors.toList());
     }
