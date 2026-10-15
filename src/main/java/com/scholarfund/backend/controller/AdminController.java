@@ -19,22 +19,6 @@ public class AdminController {
 
     private final InstituteProfileService instituteProfileService;
 
-//    @PreAuthorize("hasRole('GOVT')")
-//    @GetMapping("/institutes/unverified-list")
-//    public ResponseEntity<ApiResponse<List<InstituteProfileResponse>>> getUnverifiedInstitutes() {
-//        log.info("Admin fetching all unverified institutes");
-//
-//        List<InstituteProfileResponse> unverifiedList = instituteProfileService.getUnverifiedInstitutes();
-//
-//        String message = unverifiedList.isEmpty()
-//                ? "There is no unverified college"
-//                : "Unverified institutes fetched successfully";
-//
-//        return ResponseEntity.ok(
-//                new ApiResponse<>(200, "SUCCESS", message, unverifiedList,unverifiedList.size())
-//        );
-//    }
-
     @PreAuthorize("hasRole('GOVT')")
     @GetMapping("/institutes-list")
     public ResponseEntity<ApiResponse<List<InstituteProfileResponse>>> getAllInstitutes() {

@@ -9,6 +9,8 @@ import com.scholarfund.backend.service.ScholarshipApplicationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -114,5 +116,20 @@ public class ScholarshipApplicationController {
         return ResponseEntity.ok(
                 new ApiResponse<>(200, "SUCCESS", message, applications,applications.size())
         );
+    }
+
+    @GetMapping("/{applicationId}/download-pdf")
+    public ResponseEntity<byte[]> downloadApplicationPdf(@PathVariable Long applicationId) {
+        log.info("Request received to download PDF for application ID: {}", applicationId);
+
+        byte[] pdfBytes = applicationService.generateApplicationPdf(applicationId);
+
+        String fileName = "Scholarship_Application_" + applicationId + ".pdf";
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .contentLength(pdfBytes.length)
+                .body(pdfBytes);
     }
 }

@@ -86,14 +86,7 @@ public class InstituteProfileService {
         return mapToResponse(savedProfile, user);
     }
 
-    // --- ADMIN METHODS ---
-//    @Transactional(readOnly = true)
-//    public List<InstituteProfileResponse> getUnverifiedInstitutes() {
-//        return instituteProfileRepository.findByVerifiedByGovtFalse().stream()
-//                .map(profile -> mapToResponse(profile, profile.getUser()))
-//                .collect(Collectors.toList());
-//    }
-
+    // --- ADMIN METHODS --
     @Transactional(readOnly = true)
     public List<InstituteProfileResponse> getAllInstitutes() {
         return instituteProfileRepository.findAll().stream()

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Scholarship Acknowledgement Slip</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 11px;
+            color: #2b2b2b;
+            margin: 25px;
+            line-height: 1.4;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #0056b3;
+            padding-bottom: 10px;
+            margin-bottom: 16px;
+        }
+        .header h1 {
+            margin: 0;
+            color: #0056b3;
+            font-size: 20px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .header p {
+            margin: 4px 0 0;
+            color: #666;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .section-header {
+            background-color: #f0f4f8;
+            color: #0056b3;
+            font-weight: bold;
+            font-size: 12px;
+            padding: 6px 10px;
+            margin-top: 14px;
+            margin-bottom: 8px;
+            border-left: 4px solid #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+        }
+        th, td {
+            border: 1px solid #dcdcdc;
+            padding: 6px 8px;
+            text-align: left;
+            vertical-align: middle;
+        }
+        th {
+            background-color: #fafbfc;
+            font-weight: 600;
+            color: #333;
+        }
+        .status-badge {
+            display: inline-block;
+            background-color: #28a745;
+            color: #ffffff;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 3px;
+        }
+        .timeline-table th {
+            background-color: #f1f3f5;
+        }
+        .footer {
+            margin-top: 30px;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 8px;
+            font-size: 9px;
+            color: #777;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>ScholarFund Portal</h1>
+    <p>Government of India / West Bengal State Scholarship Portal</p>
+    <p><strong>Official Application & Verification Acknowledgement Slip</strong></p>
+</div>
+
+<!-- Application Top Overview -->
+<table>
+    <tr>
+        <th width="25%">Application ID</th>
+        <td width="25%"><strong th:text="${app.applicationId}">NULL</strong></td>
+        <th width="25%">Current Status</th>
+        <td width="25%">
+            <span class="status-badge" th:text="${app.status}">NOT APPLIED</span>
+        </td>
+    </tr>
+    <tr>
+        <th>Institute Name</th>
+        <td colspan="3"><strong th:text="${app.instituteName}">College Name</strong></td>
+    </tr>
+</table>
+
+<!-- 1. Applicant & Academic Info -->
+<div class="section-header">1. Applicant & Academic Information</div>
+<table>
+    <tr>
+        <th width="25%">Applicant Name</th>
+        <td width="25%" th:text="${app.studentName}">Student Name</td>
+        <th width="25%">Enrolled Course</th>
+        <td width="25%" th:text="${app.courseName}">BTech</td>
+    </tr>
+    <tr>
+        <th>Academic Year</th>
+        <td th:text="${app.academicYear}">2025-2026</td>
+        <th>Annual Family Income</th>
+        <td>&#8377; <span th:text="${#numbers.formatDecimal(app.annualIncome, 0, 'COMMA', 0, 'POINT')}">120,000</span></td>
+    </tr>
+    <tr>
+        <th>Last Qualification</th>
+        <td th:text="${app.lastQualificationCourse}">10+2 (Higher Secondary Education)</td>
+        <th>Exam Roll Number</th>
+        <td th:text="${app.lastQualificationExamRollNo}">WBCISD8090</td>
+    </tr>
+    <tr>
+        <th>Board / Council</th>
+        <td th:text="${app.passOutBoardName}">WBHSE</td>
+        <th>Marks Obtained (%)</th>
+        <td><strong th:text="${app.lastQualificationMarks} + '%'">90%</strong></td>
+    </tr>
+</table>
+
+<!-- 2. Bank Information -->
+<div class="section-header">2. DBT Bank Account Details</div>
+<table>
+    <tr>
+        <th width="25%">Bank Account No.</th>
+        <td width="25%" th:text="${app.bankAccountNumber}">8080</td>
+        <th width="25%">IFSC Code</th>
+        <td width="25%"><strong th:text="${app.ifscCode}">SBIN00032</strong></td>
+    </tr>
+</table>
+
+<!-- 3. Verification & Approval Audit Trail -->
+<div class="section-header">3. Application Audit & Verification History</div>
+<table class="timeline-table">
+    <thead>
+    <tr>
+        <th width="28%">Action Taken</th>
+        <th width="12%">Role</th>
+        <th width="22%">Verified By</th>
+        <th width="38%">Remarks</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="record : ${app.timeline}">
+        <td><strong th:text="${record.actionTaken}">Status updated</strong></td>
+        <td th:text="${record.actorRole}">GOVT</td>
+        <td th:text="${record.actionBy}">Government Administrator</td>
+        <td th:text="${record.remarks}">All documents verified.</td>
+    </tr>
+    </tbody>
+</table>
+
+<div class="footer">
+    <p>This is a computer-generated acknowledgement receipt from ScholarFund. Generated on: <span th:text="${generatedAt}">2026-10-15</span></p>
+</div>
+
+</body>
+</html>

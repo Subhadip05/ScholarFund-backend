@@ -12,12 +12,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.thymeleaf.TemplateEngine;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import com.itextpdf.html2pdf.HtmlConverter;
+import org.thymeleaf.context.Context;
+
+import java.io.ByteArrayOutputStream;
+import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +37,7 @@ public class ScholarshipApplicationService {
     private final UserRepository userRepository;
     private final DocumentFileRepository documentFileRepository;
     private final S3Service s3Service;
+    private final TemplateEngine templateEngine;
 
     @Transactional
     public ApplicationResponse submitApplication(String email, ApplicationSubmitRequest request) {
@@ -300,5 +308,32 @@ public class ScholarshipApplicationService {
         return applications.stream()
                 .map(this::applicationMapToResponse)
                 .toList();
+    }
+
+
+    @Transactional(readOnly = true)
+    public byte[] generateApplicationPdf(Long applicationId) {
+        ScholarshipApplication application = applicationRepository.findById(applicationId)
+                .orElseThrow(() -> new ScholarFundException("Application not found with ID: " + applicationId, ErrorCode.NOT_FOUND, null));
+
+        ApplicationResponse response = applicationMapToResponse(application);
+
+        try {
+            Context context = new Context();
+            context.setVariable("app", response);
+            context.setVariable("generatedAt", LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm a")));
+
+            String processedHtml = templateEngine.process("scholarship_receipt", context);
+
+            // Convert rendered HTML to PDF bytes via iText 7 html2pdf
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            HtmlConverter.convertToPdf(processedHtml, outputStream);
+
+            return outputStream.toByteArray();
+
+        } catch (Exception e) {
+            log.error("Error generating PDF for application ID {}: {}", applicationId, e.getMessage(), e);
+            throw new ScholarFundException("Failed to generate application PDF.", ErrorCode.INTERNAL_SERVER_ERROR, null);
+        }
     }
 }
