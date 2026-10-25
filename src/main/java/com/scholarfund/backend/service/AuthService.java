@@ -20,9 +20,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -37,6 +37,8 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
+
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     @Transactional
     public void registerStudent(RegisterStudentDto dto) {
@@ -179,7 +181,7 @@ public class AuthService {
         }
 
         // Generate 6-digit OTP
-        String otpCode = String.format("%06d", new Random().nextInt(999999));
+        String otpCode = String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
 
         // Fix the race condition: Check for an existing OTP row first
         Optional<OtpVerification> existingOtpOpt = otpRepository.findByEmail(user.getEmail().trim());
