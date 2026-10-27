@@ -14,6 +14,8 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -80,6 +82,27 @@ public class S3Service {
         } catch (Exception e) {
             log.error("Error generating pre-signed URL for key {}: {}", s3Key, e.getMessage());
             throw new ScholarFundException("Could not generate file link", ErrorCode.ERROR_GENERATING_REPORT, null);
+        }
+    }
+
+    public String generatePresignedUploadUrl(String s3Key) {
+        try {
+            // Do NOT pass contentType here. S3 will only sign 'host'.
+            PutObjectRequest objectRequest = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(s3Key)
+                    .build();
+
+            PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofMinutes(10))
+                    .putObjectRequest(objectRequest)
+                    .build();
+
+            PresignedPutObjectRequest presignedPut = s3Presigner.presignPutObject(presignRequest);
+            return presignedPut.url().toString();
+        } catch (Exception e) {
+            log.error("Error generating pre-signed PUT URL for key {}: {}", s3Key, e.getMessage());
+            throw new ScholarFundException("Could not generate upload URL", ErrorCode.ERROR_GENERATING_REPORT, null);
         }
     }
 }
