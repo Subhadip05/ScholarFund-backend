@@ -1,5 +1,6 @@
 package com.scholarfund.backend.security;
 
+import com.scholarfund.backend.entity.User;
 import com.scholarfund.backend.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -18,7 +19,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        com.scholarfund.backend.entity.User appUser = userRepository.findByEmail(username)
+        User appUser = userRepository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
 
         return org.springframework.security.core.userdetails.User.builder()
